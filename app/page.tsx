@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
+
 import Link from 'next/link';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -13,21 +13,6 @@ const IS_REGISTRATION_OPEN = false;
 
 // Register GSAP Plugin
 gsap.registerPlugin(ScrollTrigger);
-
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-function loadRazorpayScript(src: string) {
-  return new Promise((resolve) => {
-    const script = document.createElement('script');
-    script.src = src;
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-}
 
 export default function MarathonPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -118,56 +103,12 @@ export default function MarathonPage() {
       return;
     }
 
-    // --- PRE-CHECK REMOVED ---
-    // The code that previously checked for existingUser has been deleted 
-    // to allow multiple registrations with the same email.
-
-    const res = await loadRazorpayScript('https://checkout.razorpay.com/v1/checkout.js');
-    if (!res) {
-      alert('Razorpay SDK failed to load. Are you online?');
+    // Simulate backend processing and successful registration without Supabase and Razorpay
+    setTimeout(() => {
+      console.log('Processed Registration:', entry);
       setIsLoading(false);
-      return;
-    }
-    
-    const options = {
-      key: process.env.NEXT_PUBLIC_RAZORPAY, 
-      amount: "20000", 
-      currency: "INR",
-      name: "MERAKI'26",
-      description: "ATALRUN 5KM Registration Fee",
-      image: "https://atalrun.vercel.app/Untitled%20design_20260312_121903_0000.png",
-      handler: async function (response: any) {
-        const { error } = await supabase.from('participants').insert([{
-          ...entry,
-          payment_id: response.razorpay_payment_id 
-        }]);
-
-        if (error) {
-          console.error("🔥 SUPABASE ERROR DETAILS:", error);
-          alert(`Database said: ${error.message || error.details || JSON.stringify(error)}`);
-          setIsLoading(false);
-          return;
-        }
-
-        setIsLoading(false);
-        setIsSubmitted(true);
-      },
-      prefill: {
-        name: entry.full_name,
-        email: entry.email,
-      },
-      theme: {
-        color: "#0f172a", 
-      },
-      modal: {
-        ondismiss: function() {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    const paymentObject = new (window as any).Razorpay(options);
-    paymentObject.open();
+      setIsSubmitted(true);
+    }, 1200);
   }
 
   return (
